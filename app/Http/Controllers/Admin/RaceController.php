@@ -44,34 +44,58 @@ class RaceController extends Controller
     public function bulkStore(Request $request)
     {
         $data = $request->validate([
-            'title'          => 'required|string|max:200',
-            'game'           => 'required|in:acc,lmu,iracing',
-            'track'          => 'required|string|max:255',
-            'start_date'     => 'required|date',
-            'start_time'     => 'required|date_format:H:i',
-            'rounds'         => 'required|integer|min:1|max:52',
-            'interval_weeks' => 'required|integer|min:1|max:4',
-            'max_drivers'    => 'nullable|integer|min:1',
-            'description'    => 'nullable|string',
+            'title'       => 'required|string|max:200',
+            'game'        => 'required|in:acc,lmu,iracing',
+            'track'       => 'required|string|max:255',
+            'start_date'  => 'required|date',
+            'start_time'  => 'required|date_format:H:i',
+            'rounds'      => 'required|integer|min:1|max:366',
+            'interval'    => 'required|in:daily,weekly,monthly',
+            'days'        => 'nullable|array',
+            'days.*'      => 'integer|in:0,1,2,3,4,5,6',
+            'max_drivers' => 'nullable|integer|min:1',
+            'description' => 'nullable|string',
         ]);
 
-        $base = Carbon::parse($data['start_date'] . ' ' . $data['start_time']);
-        $numberRounds = $request->boolean('number_rounds');
+        $base    = Carbon::parse($data['start_date'] . ' ' . $data['start_time']);
+        $rounds  = (int) $data['rounds'];
+        $payload = fn ($at) => [
+            'title'        => $data['title'],
+            'game'         => $data['game'],
+            'track'        => $data['track'],
+            'scheduled_at' => $at,
+            'max_drivers'  => $data['max_drivers'] ?? null,
+            'description'  => $data['description'] ?? null,
+            'status'       => 'open',
+        ];
 
-        for ($i = 0; $i < (int) $data['rounds']; $i++) {
-            Race::create([
-                'title'        => $numberRounds ? $data['title'] . ' — R' . ($i + 1) : $data['title'],
-                'game'         => $data['game'],
-                'track'        => $data['track'],
-                'scheduled_at' => $base->copy()->addWeeks($i * (int) $data['interval_weeks']),
-                'max_drivers'  => $data['max_drivers'] ?? null,
-                'description'  => $data['description'] ?? null,
-                'status'       => 'open',
-            ]);
+        if ($data['interval'] === 'weekly' && !empty($data['days'])) {
+            $days    = array_map('intval', $data['days']);
+            sort($days);
+            $created = 0;
+            $current = $base->copy();
+            $limit   = $base->copy()->addYears(2);
+
+            while ($created < $rounds && $current < $limit) {
+                if (in_array($current->dayOfWeek, $days)) {
+                    Race::create($payload($current->copy()));
+                    $created++;
+                }
+                $current->addDay();
+            }
+        } else {
+            for ($i = 0; $i < $rounds; $i++) {
+                $at = match ($data['interval']) {
+                    'daily'   => $base->copy()->addDays($i),
+                    'monthly' => $base->copy()->addMonths($i),
+                    default   => $base->copy()->addWeeks($i),
+                };
+                Race::create($payload($at));
+            }
         }
 
         return redirect()->route('admin.calendar')
-            ->with('success', $data['rounds'] . ' races scheduled successfully!');
+            ->with('success', $rounds . ' events scheduled successfully!');
     }
 
     public function store(Request $request)
@@ -98,6 +122,20 @@ class RaceController extends Controller
         }
 
         return view('admin.races.edit', compact('race'));
+    }
+
+    public function destroy(Race $race)
+    {
+        if ($race->status !== 'finished') {
+            return redirect()->route('admin.races.index')
+                ->with('error', 'Only finished races can be deleted.');
+        }
+
+        $title = $race->title;
+        $race->delete();
+
+        return redirect()->route('admin.races.index')
+            ->with('success', '"' . $title . '" deleted. Results are preserved on driver profiles.');
     }
 
     public function update(Request $request, Race $race)
