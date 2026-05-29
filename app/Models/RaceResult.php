@@ -8,11 +8,56 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class RaceResult extends Model
 {
     protected $fillable = [
-        'race_id', 'session_type', 'user_id',
-        'player_id', 'driver_name', 'car_number',
-        'position', 'best_lap', 'lap_count', 'total_time',
+        'race_id', 'race_title', 'race_track', 'race_game', 'race_scheduled_at',
+        'session_type', 'user_id',
+        'player_id', 'driver_name', 'car_number', 'vehicle',
+        'position', 'best_lap', 'lap_count', 'laps_led', 'total_time', 'consistency',
         'fastest_lap', 'dnf',
     ];
+
+    private const ACC_CARS = [
+        0  => 'Porsche 991 GT3 R',
+        1  => 'Mercedes-AMG GT3',
+        2  => 'Ferrari 488 GT3',
+        3  => 'Audi R8 LMS',
+        4  => 'Lamborghini Huracán GT3',
+        5  => 'McLaren 650S GT3',
+        6  => 'Nissan GT-R Nismo GT3',
+        7  => 'BMW M6 GT3',
+        8  => 'Bentley Continental GT3',
+        9  => 'Porsche 991 II GT3 Cup',
+        11 => 'Bentley Continental GT3 (2016)',
+        12 => 'AMR V12 Vantage GT3',
+        14 => 'Emil Frey Jaguar G3',
+        15 => 'Lexus RC F GT3',
+        16 => 'Lamborghini Huracán GT3 Evo',
+        17 => 'Honda NSX GT3',
+        18 => 'Lamborghini Huracán ST',
+        19 => 'Audi R8 LMS Evo',
+        20 => 'AMR V8 Vantage GT3',
+        21 => 'Honda NSX GT3 Evo',
+        22 => 'McLaren 720S GT3',
+        23 => 'Porsche 991 II GT3 R',
+        24 => 'Ferrari 488 GT3 Evo',
+        25 => 'Mercedes-AMG GT3 Evo',
+        26 => 'Ferrari 488 Challenge Evo',
+        27 => 'BMW M2 CS Racing',
+        28 => 'Porsche 992 GT3 Cup',
+        29 => 'Lamborghini Huracán ST Evo2',
+        30 => 'BMW M4 GT3',
+        31 => 'Audi R8 LMS Evo 2',
+        32 => 'Ferrari 296 GT3',
+        33 => 'Lamborghini Huracán GT3 Evo2',
+        34 => 'Porsche 992 GT3 R',
+        35 => 'McLaren 720S GT3 Evo',
+        36 => 'Ford Mustang GT3',
+    ];
+
+    public static function accCarName(?int $modelId): ?string
+    {
+        if ($modelId === null) return null;
+        return self::ACC_CARS[$modelId] ?? 'Car #' . $modelId;
+    }
 
     protected function casts(): array
     {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CalendarController as AdminCalendarController;
+use App\Http\Controllers\Admin\FtpServerController;
 use App\Http\Controllers\Admin\RaceController as AdminRaceController;
 use App\Http\Controllers\Admin\RaceResultController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -51,8 +52,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/races', [AdminRaceController::class, 'store'])->name('races.store');
     Route::get('/races/{race}/edit', [AdminRaceController::class, 'edit'])->name('races.edit');
     Route::put('/races/{race}', [AdminRaceController::class, 'update'])->name('races.update');
+    Route::delete('/races/{race}', [AdminRaceController::class, 'destroy'])->name('races.destroy');
     Route::get('/races/{race}/results', [RaceResultController::class, 'create'])->name('races.results');
     Route::post('/races/{race}/results', [RaceResultController::class, 'store'])->name('races.results.store');
+    Route::post('/races/{race}/results/ftp', [RaceResultController::class, 'ftpImport'])->name('races.results.ftp');
+
+    // FTP Servers
+    Route::get('/servers', [FtpServerController::class, 'index'])->name('servers.index');
+    Route::get('/servers/create', [FtpServerController::class, 'create'])->name('servers.create');
+    Route::post('/servers', [FtpServerController::class, 'store'])->name('servers.store');
+    Route::get('/servers/{ftpServer}/edit', [FtpServerController::class, 'edit'])->name('servers.edit');
+    Route::put('/servers/{ftpServer}', [FtpServerController::class, 'update'])->name('servers.update');
+    Route::delete('/servers/{ftpServer}', [FtpServerController::class, 'destroy'])->name('servers.destroy');
+    Route::post('/servers/{ftpServer}/test', [FtpServerController::class, 'test'])->name('servers.test');
 });
 
 // Super admin only

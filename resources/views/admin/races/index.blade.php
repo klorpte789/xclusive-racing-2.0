@@ -213,6 +213,17 @@
                                 Edit
                             </a>
                             @endif
+                            @if($race->status === 'finished')
+                            <form action="{{ route('admin.races.destroy', $race) }}" method="POST"
+                                  onsubmit="return confirm('Delete {{ addslashes($race->title) }}?\nResults will be preserved on driver profiles.')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm fw-bold text-uppercase"
+                                        style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;font-size:.72rem;padding:5px 12px;border-radius:6px">
+                                    Delete
+                                </button>
+                            </form>
+                            @endif
                         </div>
                     </td>
                 </tr>

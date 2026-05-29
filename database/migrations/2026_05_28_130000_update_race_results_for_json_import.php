@@ -29,8 +29,13 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::statement('ALTER TABLE race_results DROP FOREIGN KEY race_results_user_id_foreign');
-        DB::statement('ALTER TABLE race_results DROP INDEX race_results_session_player_unique');
+        try {
+            DB::statement('ALTER TABLE race_results DROP FOREIGN KEY race_results_user_id_foreign');
+        } catch (\Exception) {}
+
+        try {
+            DB::statement('ALTER TABLE race_results DROP INDEX race_results_session_player_unique');
+        } catch (\Exception) {}
 
         DB::statement('
             ALTER TABLE race_results
